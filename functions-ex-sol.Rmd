@@ -1,0 +1,108 @@
+## Faszinierend funkelnd funktional -funzen muss es halt!
+
+Lesen Sie das ["Functions"](http://adv-r.had.co.nz/Functions.html)-Kapitel aus dem *Advanced R Programming*-Buch von Hadley Wickham aufmerksam durch.
+
+Bearbeiten Sie die folgenden von dort übernommenen Aufgaben:
+
+a)  Schreiben Sie die folgenden verwirrenden Funktionsaufrufe so um dass sie möglichst klar & einfach zu verstehen sind:
+
+```{r, 1a, eval=FALSE}
+set.seed(20141012)
+x <- sample(x = c(1:10, NA), size = 20, replace = TRUE)
+y <- runif(n = 20)
+cor(x = x, y = y, method = "kendall", use = "pairwise.complete.obs")
+```
+
+b)  Was gibt diese Funktion zurück? Warum? Welches Prinzip illustriert sie?
+
+```{r, 1b, eval=FALSE}
+f1 <- function(x =
+                 {
+                   y <- 1
+                   2
+                 },
+               y = 0)
+{
+  x + y
+}
+```
+
+*Hinweis:* Was passiert wenn Sie die letzte Zeile mit `y + x` ersetzen? Mit `c(y, x, y)`?
+
+Prinzip: lazy evaluation (Inputs werden erst evaluiert, wenn sie tatsächlich benutzt werden. Bzw. in der Reihenfolge in der sie benutzt werden.)
+Ausgabe:
+Fall 1: f1(x = a, y = b) = a + b
+Fall 2: f1(x = a) = a + 0
+Fall 3: f1(y = b) = 2 + 1
+Fall 4: f1() = 2 + 1
+wenn y + x wird zuerst y ausgewertet, daraus folgt beispielsweise für Fall 3: b + 2
+für c(y, x, y) wird bei Fall 4: c(0,2,1) ausgegeben.
+
+c)  Was gibt diese Funktion zurück? Warum? Welches Prinzip illustriert sie?
+
+```{r, 1c, eval=FALSE}
+f2 <- function(x = z) {
+  z <- 100
+  x
+}
+```
+
+Prinzip: Name masking (lexical scoping)
+wenn x nicht definiert wird gibt sie 100 zurück sonst x.
+Für den default fall sucht die fkt z als erstes in der funktionsdefinition.
+
+d)  Schreiben sie eine *infix*-Funktion `%xor%` für `logical`-inputs die eine XOR-Operation (entweder-oder-aber-nicht-beides) durchführt. Überprüfen Sie ihre Funktion mit den folgenden Tests:
+
+
+```{r, code = readLines("test-functions-xor.R"), eval=FALSE}
+`%xor%` <- function(a, b) {
+  (a | b) & !(a & b)
+}
+```
+
+e)  Wie kann jeweils der Zustand von `options()` und `par()` abgespeichert und wiederhergestellt werden?
+
+```{r}
+my_blue_plot <- function(x, y, ...) {
+  old_col <- par(col = "blue")
+  # the col argument from par will be restored with on.exit() after the function
+  # call
+  on.exit(par(old_col))
+  plot(x, y, ...)
+}
+plot(1:10, 1:10, type = "l")
+my_blue_plot(1:10, 1:10, type = "l")
+plot(1:10, 1:10, type = "l")
+```
+options() analog.
+
+f)  Schreiben Sie eine Funktion die ein neues PDF-Grafikdevice öffnet, `plot` mit den übergebenen Argumenten aufruft und dann das zuvor geöffnete Grafikfenster wieder schließt, egal ob die übergebenen Argumente für `plot` funktioniert haben oder nicht.
+
+```{r}
+# function opens an pdf window, tries to plot the given arguments and closes the
+# window again. additional pdf arguments are possible and should be given as a
+# named list
+open_pdf_gr_device <- function(..., pdf_args = NULL) {
+  if (is.null(pdf_args)) {
+    pdf()
+  } else {
+    do.call(pdf, pdf_args)
+  }
+  try(plot(...))
+  dev.off()
+}
+```
+
+
+
+
+g)  Was gibt der folgende Code zurück? Warum? Was bedeuten die drei verschiedenen `c`s in der zweiten Zeile?
+
+```{r, 1g, eval=FALSE}
+c <- 10
+c(c = c)
+```
+
+R checkt, ob das aufgerufene c eine Funktion oder eine Variable sein soll.
+c() ist der funktionsauruf für den vektor.
+Als erstes wird die Variable c definiert. Dann die Funktion c() aufgerufen und die Variable zusammen mit dem Namensattribut c (2. c in der 2. Zeile) übergeben.
